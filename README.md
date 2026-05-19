@@ -1,9 +1,11 @@
 # Sistem Informasi Lost and Found (SILAF)
-
+<div align="center">
+  
 [![GitHub stars](https://img.shields.io/github/stars/nazedev/silaf?style=flat-square)](https://github.com/nazedev/silaf/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/nazedev/silaf?style=flat-square)](https://github.com/nazedev/silaf/network/members)
 [![GitHub issues](https://img.shields.io/github/issues/nazedev/silaf?style=flat-square)](https://github.com/nazedev/silaf/issues)
 [![Views](https://visitor-badge.laobi.icu/badge?page_id=nazedev.silaf)](https://github.com/nazedev/silaf)
+</div>
 
 SILAF adalah aplikasi berbasis web untuk pelaporan dan manajemen barang hilang maupun temuan di lingkungan kampus. Platform ini memfasilitasi mahasiswa dalam memublikasikan laporan, serta memberikan akses moderasi terpusat bagi pihak Pusat Keamanan. 
 
