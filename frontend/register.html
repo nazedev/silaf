@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daftar – SILAF</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="assets/style.css">
+    <script src="assets/theme.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white dark:bg-[#1a1a1a] p-8 brutal-border brutal-shadow mt-10 mb-10">
+        <div class="text-center mb-6">
+            <h1 class="text-4xl font-black bg-primary text-black px-2 inline-block brutal-border uppercase tracking-tighter">SILAF</h1>
+            <p class="text-sm font-bold mt-1">Buat akun baru</p>
+        </div>
+        <div id="alertBox" class="hidden mb-4 p-3 brutal-border text-sm text-center font-bold"></div>
+        <form id="registerForm" class="space-y-5">
+            <div>
+                <label class="block text-sm font-bold mb-1 uppercase tracking-wide">Nama Lengkap</label>
+                <input type="text" id="name" required placeholder="Masukkan nama"
+                    class="brutal-input w-full px-4 py-3">
+            </div>
+            <div>
+                <label class="block text-sm font-bold mb-1 uppercase tracking-wide">Email</label>
+                <input type="email" id="email" required placeholder="Masukkan email"
+                    class="brutal-input w-full px-4 py-3">
+            </div>
+            <div>
+                <label class="block text-sm font-bold mb-1 uppercase tracking-wide">Password</label>
+                <input type="password" id="password" required placeholder="Minimal 6 karakter"
+                    class="brutal-input w-full px-4 py-3">
+            </div>
+            <button type="submit" id="submitBtn" class="w-full bg-primary text-black font-black py-3 px-4 brutal-border brutal-shadow hover:brutal-shadow-none uppercase tracking-widest mt-4">
+                Daftar
+            </button>
+        </form>
+        <div class="mt-8 flex items-center justify-center">
+            <div class="border-t-[3px] border-black dark:border-white flex-grow"></div>
+            <span class="px-3 text-sm font-bold uppercase">ATAU</span>
+            <div class="border-t-[3px] border-black dark:border-white flex-grow"></div>
+        </div>
+        <div class="mt-6 flex justify-center w-full" id="googleBtnWrapper">
+        </div>
+        <p class="mt-8 text-center text-sm font-bold">
+            Sudah punya akun? <a href="index.html" class="text-primary hover:underline">Masuk di sini</a>
+        </p>
+    </div>
+    <script>
+        function showAlert(msg, isError = true) {
+            const alertBox = document.getElementById('alertBox');
+            alertBox.textContent = msg;
+            alertBox.className = `mb-4 p-3 brutal-border text-sm text-center font-bold ${isError ? 'bg-red-400 text-black' : 'bg-green-400 text-black'}`;
+            alertBox.classList.remove('hidden');
+        }
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const name = document.getElementById('name').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('submitBtn');
+            if (password.length < 6) {
+                showAlert('Password minimal 6 karakter');
+                return;
+            }
+            btn.disabled = true;
+            btn.textContent = 'MEMPROSES...';
+            document.getElementById('alertBox').classList.add('hidden');
+            try {
+                const res = await fetch('../api/auth/register.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name, email, password })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    showAlert('Pendaftaran berhasil! Mengalihkan...', false);
+                    setTimeout(() => { window.location.href = 'index.html'; }, 1000);
+                } else {
+                    showAlert(data.message || 'Pendaftaran gagal.');
+                    btn.disabled = false;
+                    btn.textContent = 'DAFTAR';
+                }
+            } catch (err) {
+                showAlert('Gagal menghubungi server.');
+                btn.disabled = false;
+                btn.textContent = 'DAFTAR';
+            }
+        });
+        async function handleGoogleCallback(response) {
+            showAlert('Memproses daftar via Google...', false);
+            try {
+                const res = await fetch('../api/auth/google_login.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ credential: response.credential })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    localStorage.setItem('silaf-token', data.token);
+                    localStorage.setItem('silaf-user', JSON.stringify(data.user));
+                    showAlert('Daftar berhasil! Mengalihkan...', false);
+                    setTimeout(() => {
+                        window.location.href = data.user.role === 'ADMIN' ? 'admin.html' : 'dashboard.html';
+                    }, 500);
+                } else {
+                    showAlert(data.message || 'Daftar via Google gagal.');
+                }
+            } catch (err) {
+                showAlert('Gagal menghubungi server.');
+            }
+        }
+        window.addEventListener('load', () => {
+            const renderGoogleBtn = () => {
+                if (window.google) {
+                    google.accounts.id.initialize({
+                        client_id: "106663288666-h004jv8jii65vv3kibijoivdr5k3n0tq.apps.googleusercontent.com",
+                        callback: handleGoogleCallback,
+                        context: "signup",
+                        ux_mode: "popup",
+                        auto_prompt: false
+                    });
+                    const submitBtnWidth = document.getElementById('submitBtn').offsetWidth;
+                    google.accounts.id.renderButton(
+                        document.getElementById("googleBtnWrapper"),
+                        { theme: "outline", size: "large", type: "standard", shape: "rectangular", text: "signup_with", logo_alignment: "left", width: submitBtnWidth }
+                    );
+                } else {
+                    setTimeout(renderGoogleBtn, 100);
+                }
+            };
+            renderGoogleBtn();
+            let resizeTimer;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimer);
+                resizeTimer = setTimeout(() => {
+                    if (window.google) {
+                        const submitBtnWidth = document.getElementById('submitBtn').offsetWidth;
+                        document.getElementById('googleBtnWrapper').innerHTML = '';
+                        google.accounts.id.renderButton(
+                            document.getElementById("googleBtnWrapper"),
+                            { theme: "outline", size: "large", type: "standard", shape: "rectangular", text: "signup_with", logo_alignment: "left", width: submitBtnWidth }
+                        );
+                    }
+                }, 200);
+            });
+        });
+    </script>
+</body>
+</html>

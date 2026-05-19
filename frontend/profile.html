@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil – SILAF</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="assets/style.css">
+    <script src="assets/theme.js"></script>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white dark:bg-[#1a1a1a] p-8 brutal-border brutal-shadow">
+        <div class="mb-6 border-b-[3px] border-black dark:border-white pb-4 flex justify-between items-center">
+            <h1 class="text-3xl font-black uppercase">Profil Saya</h1>
+            <a href="dashboard.html" class="text-3xl font-black hover:scale-110 transition-transform">&times;</a>
+        </div>
+        <div id="alertBox" class="hidden mb-4 p-3 brutal-border text-sm text-center font-bold"></div>
+        <div class="flex flex-col items-center mb-8">
+            <div id="avatar" class="w-24 h-24 rounded-full bg-primary brutal-border flex items-center justify-center text-4xl font-black mb-4">
+                U
+            </div>
+            <div id="nameView" class="flex items-center gap-2">
+                <h2 id="profileName" class="text-2xl font-black uppercase text-center">Loading...</h2>
+                <button onclick="toggleEdit()" class="text-sm bg-yellow-300 text-black px-2 py-1 brutal-border font-bold uppercase hover:bg-yellow-400 hover:-translate-y-1 transition-transform" title="Ubah Nama">✏️</button>
+            </div>
+            <div id="nameEdit" class="hidden flex-col items-center gap-2 w-full mt-2">
+                <input type="text" id="nameInput" class="brutal-input w-full px-3 py-2 text-center font-bold" placeholder="Nama Baru">
+                <div class="flex gap-2">
+                    <button onclick="saveName()" id="saveBtn" class="bg-green-400 text-black px-4 py-2 brutal-border font-black uppercase text-xs hover:bg-green-500">Simpan</button>
+                    <button onclick="toggleEdit()" class="bg-gray-300 text-black px-4 py-2 brutal-border font-black uppercase text-xs hover:bg-gray-400">Batal</button>
+                </div>
+            </div>
+            <p id="profileEmail" class="font-bold text-gray-500 mt-1">...</p>
+            <p id="profileRole" class="mt-2 text-xs uppercase font-black bg-gray-200 dark:bg-gray-700 px-3 py-1 brutal-border">Role</p>
+        </div>
+        <div class="space-y-4">
+            <a href="dashboard.html" class="block text-center w-full bg-primary text-black font-black py-3 px-4 brutal-border brutal-shadow hover:brutal-shadow-none uppercase tracking-widest">
+                Kembali ke Dashboard
+            </a>
+            <button onclick="logout()" class="w-full bg-red-400 text-black font-black py-3 px-4 brutal-border brutal-shadow hover:brutal-shadow-none uppercase tracking-widest mt-4">
+                Keluar
+            </button>
+        </div>
+    </div>
+    <script>
+        const token = localStorage.getItem('silaf-token');
+        const userStr = localStorage.getItem('silaf-user');
+        if (!token || !userStr) {
+            window.location.href = 'index.html';
+        }
+        const user = JSON.parse(userStr);
+        document.getElementById('profileName').textContent = user.name || 'User';
+        document.getElementById('profileEmail').textContent = user.email || '-';
+        document.getElementById('profileRole').textContent = user.role === 'ADMIN' ? 'Admin / Petugas' : 'Pengguna Reguler';
+        if(user.name) {
+            document.getElementById('avatar').textContent = user.name.charAt(0).toUpperCase();
+        }
+        function toggleEdit() {
+            const view = document.getElementById('nameView');
+            const edit = document.getElementById('nameEdit');
+            if (view.classList.contains('hidden')) {
+                view.classList.remove('hidden');
+                view.classList.add('flex');
+                edit.classList.add('hidden');
+                edit.classList.remove('flex');
+            } else {
+                view.classList.add('hidden');
+                view.classList.remove('flex');
+                edit.classList.remove('hidden');
+                edit.classList.add('flex');
+                document.getElementById('nameInput').value = user.name;
+                document.getElementById('nameInput').focus();
+            }
+        }
+        async function saveName() {
+            const newName = document.getElementById('nameInput').value.trim();
+            const alertBox = document.getElementById('alertBox');
+            const btn = document.getElementById('saveBtn');
+            if (!newName) {
+                showAlert('Nama tidak boleh kosong', 'error');
+                return;
+            }
+            btn.disabled = true;
+            btn.textContent = '...';
+            try {
+                const res = await fetch('../api/auth/update_profile.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ name: newName })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    user.name = data.user.name;
+                    localStorage.setItem('silaf-user', JSON.stringify(user));
+                    document.getElementById('profileName').textContent = user.name;
+                    document.getElementById('avatar').textContent = user.name.charAt(0).toUpperCase();
+                    showAlert('Profil diperbarui!', 'success');
+                    toggleEdit();
+                } else {
+                    showAlert(data.message || 'Gagal menyimpan.', 'error');
+                }
+            } catch (err) {
+                showAlert('Terjadi kesalahan jaringan.', 'error');
+            }
+            btn.disabled = false;
+            btn.textContent = 'Simpan';
+        }
+        function showAlert(msg, type) {
+            const box = document.getElementById('alertBox');
+            box.textContent = msg;
+            box.className = `mb-4 p-3 brutal-border text-sm text-center font-bold ${type === 'success' ? 'bg-green-400 text-black' : 'bg-red-400 text-black'}`;
+            box.classList.remove('hidden');
+            setTimeout(() => box.classList.add('hidden'), 3000);
+        }
+        function logout() {
+            localStorage.removeItem('silaf-token');
+            localStorage.removeItem('silaf-user');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>

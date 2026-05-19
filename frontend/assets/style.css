@@ -1,0 +1,101 @@
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+:root {
+    --color-primary: #ff00ff; /* Default bright magenta for neo-brutalism */
+    --color-bg: #f4f4f0;
+    --color-text: #000000;
+    --color-text-on-primary: #000000;
+}
+
+.dark {
+    --color-bg: #111111;
+    --color-text: #ffffff;
+}
+
+body {
+    font-family: 'Space Grotesk', sans-serif;
+    background-color: var(--color-bg);
+    color: var(--color-text);
+}
+
+/* Neo-Brutalism Utilities */
+.bg-primary {
+    color: var(--color-text-on-primary, #000000) !important;
+}
+
+.brutal-border {
+    border: 3px solid var(--color-text);
+}
+
+.brutal-shadow {
+    box-shadow: 6px 6px 0px 0px var(--color-text);
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.brutal-shadow:hover {
+    box-shadow: 2px 2px 0px 0px var(--color-text);
+    transform: translate(4px, 4px);
+}
+
+.brutal-shadow-none:hover {
+    box-shadow: none;
+    transform: translate(6px, 6px);
+}
+
+/* Base Inputs */
+.brutal-input {
+    border: 3px solid var(--color-text);
+    background-color: white;
+    color: black;
+    border-radius: 0;
+}
+.brutal-input:focus {
+    outline: none;
+    box-shadow: 4px 4px 0px 0px var(--color-primary);
+}
+.dark .brutal-input {
+    background-color: #222;
+    color: white;
+}
+
+/* Color Picker Wheel Animation */
+@keyframes spin {
+    100% {
+        transform: rotate(360deg);
+    }
+}
+.color-wheel {
+    background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red);
+    border: 2px solid var(--color-text);
+    animation: spin 10s linear infinite;
+}
+.color-wheel:hover {
+    animation-play-state: paused;
+}
+
+/* Error Pages Animations */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+.animate-shake {
+    animation: shake 0.5s ease-in-out;
+}
+
+@keyframes float {
+    0% { transform: translateY(0px) rotate(0deg); }
+    50% { transform: translateY(-20px) rotate(5deg); }
+    100% { transform: translateY(0px) rotate(0deg); }
+}
+.animate-float {
+    animation: float 4s ease-in-out infinite;
+}
+
+@keyframes gear-spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+.animate-gear {
+    animation: gear-spin 4s linear infinite;
+}

@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard – SILAF</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="assets/style.css">
+    <script src="assets/theme.js"></script>
+</head>
+<body class="min-h-screen">
+    <nav class="bg-white dark:bg-[#1a1a1a] brutal-border border-l-0 border-r-0 border-t-0 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex-shrink-0 flex items-center">
+                    <span class="text-3xl font-black bg-primary text-black px-2 brutal-border uppercase tracking-tighter">SILAF</span>
+                </div>
+                <div id="disable-auto-theme" class="hidden md:flex items-center gap-4">
+                    <div class="flex flex-col text-right leading-tight pr-4 border-r-[3px] border-black dark:border-white">
+                        <a href="profile.html" class="text-xs font-bold uppercase hover:text-primary">Profil</a>
+                        <span id="userName" class="text-sm font-black uppercase"></span>
+                        <button onclick="logout()" class="text-xs text-red-500 font-bold uppercase hover:underline text-right mt-1">Keluar</button>
+                    </div>
+                    <button onclick="toggleTheme()" class="p-2 brutal-border bg-white dark:bg-[#1a1a1a] text-black dark:text-white font-black hover:scale-110 transition-transform">🌓</button>
+                    <div class="relative w-10 h-10 rounded-full cursor-pointer color-wheel brutal-border">
+                        <input type="color" oninput="updateColor(this.value)" class="theme-color-input absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                    </div>
+                </div>
+                <div class="md:hidden flex items-center">
+                    <button onclick="toggleMobileMenu()" class="p-2 brutal-border brutal-shadow bg-primary text-black">
+                        <svg id="burgerIcon" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobileMenu" class="hidden md:hidden bg-white dark:bg-[#1a1a1a] brutal-border border-l-0 border-r-0 border-t-[3px] p-4 shadow-lg absolute w-full z-50">
+            <div class="flex items-center justify-between">
+                <div class="flex flex-col leading-tight">
+                    <a href="profile.html" class="text-xs font-bold uppercase hover:text-primary">Profil</a>
+                    <span id="mobileUserName" class="text-lg font-black uppercase mt-1"></span>
+                    <button onclick="logout()" class="text-xs text-red-500 font-bold uppercase hover:underline text-left mt-2">Keluar</button>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleTheme()" class="p-2 brutal-border bg-white dark:bg-[#1a1a1a] text-black dark:text-white font-black hover:scale-110 transition-transform">🌓</button>
+                    <div class="relative w-10 h-10 rounded-full cursor-pointer color-wheel brutal-border">
+                        <input type="color" oninput="updateColor(this.value)" class="theme-color-input absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+            <div>
+                <h1 class="text-4xl font-black uppercase tracking-tight">Eksplorasi Barang</h1>
+                <p class="font-bold mt-2">Cari dan temukan barang yang hilang atau ditemukan.</p>
+            </div>
+            <button onclick="document.getElementById('addModal').classList.remove('hidden')" class="w-full md:w-auto bg-primary text-black px-6 py-4 brutal-border brutal-shadow hover:brutal-shadow-none font-black flex items-center justify-center gap-2 uppercase tracking-wide">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 4v16m8-8H4"></path></svg>
+                Buat Laporan
+            </button>
+        </div>
+        <div class="bg-white dark:bg-[#1a1a1a] p-6 brutal-border brutal-shadow mb-8 space-y-4">
+            <div class="md:hidden flex justify-between items-center mb-4">
+                <span class="font-black uppercase">Pencarian</span>
+                <button onclick="document.getElementById('mobileFilters').classList.toggle('hidden')" class="bg-gray-200 dark:bg-gray-700 text-black dark:text-white px-3 py-1 brutal-border font-bold text-xs uppercase">
+                    Filter ▾
+                </button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
+                <div class="md:col-span-6 relative flex items-center">
+                    <input type="text" id="searchInput" oninput="debouncedLoad()" placeholder="Cari nama, deskripsi, lokasi..." 
+                        class="brutal-input w-full px-4 py-3 pr-10 font-bold placeholder-gray-500">
+                    <button onclick="clearSearch()" id="clearSearchBtn" class="absolute right-3 hidden text-3xl font-black hover:text-red-500">&times;</button>
+                </div>
+                <div id="mobileFilters" class="hidden md:flex flex-col md:flex-row md:col-span-6 gap-4">
+                    <div class="flex-1">
+                        <select id="filterType" onchange="loadItems()" class="brutal-input w-full px-4 py-3 font-bold truncate cursor-pointer">
+                            <option value="">Semua Jenis</option>
+                            <option value="LOST">🔴 Kehilangan (Lost)</option>
+                            <option value="FOUND">🟢 Temuan (Found)</option>
+                        </select>
+                    </div>
+                    <div class="flex-1">
+                        <select id="filterStatus" onchange="loadItems()" class="brutal-input w-full px-4 py-3 font-bold truncate cursor-pointer">
+                            <option value="ACTIVE">⚡ Aktif</option>
+                            <option value="RESOLVED">✅ Selesai</option>
+                            <option value="ALL">📦 Semua Status</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between pt-4 border-t-[3px] border-black dark:border-white mt-4 gap-3">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" id="filterMine" onchange="loadItems()" class="w-5 h-5 brutal-border accent-primary cursor-pointer">
+                    <span class="text-xs sm:text-sm font-black uppercase">Laporan Saya Saja</span>
+                </label>
+                <p id="itemCountDisplay" class="text-xs sm:text-sm font-bold bg-gray-100 dark:bg-gray-800 px-3 py-1 brutal-border inline-block self-start sm:self-auto">Menampilkan ... laporan</p>
+            </div>
+        </div>
+        <div id="alertBox" class="hidden mb-6 p-4 brutal-border text-black font-bold uppercase"></div>
+        <div id="itemsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <p class="col-span-full text-center font-black text-xl py-8">Memuat data...</p>
+        </div>
+    </main>
+    <div id="addModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4">
+        <div class="bg-white dark:bg-[#1a1a1a] w-full max-w-lg brutal-border brutal-shadow p-6 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6 border-b-[3px] border-black dark:border-white pb-4">
+                <h2 class="text-2xl font-black uppercase">Buat Laporan Baru</h2>
+                <button onclick="document.getElementById('addModal').classList.add('hidden')" class="text-black dark:text-white hover:text-primary text-3xl font-black">&times;</button>
+            </div>
+            <form id="itemForm" class="space-y-5">
+                <div>
+                    <label class="block font-black uppercase mb-2">Tipe Laporan</label>
+                    <select id="type" class="brutal-input w-full p-3 font-bold" required>
+                        <option value="LOST">Kehilangan Barang (Lost)</option>
+                        <option value="FOUND">Menemukan Barang (Found)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block font-black uppercase mb-2">Nama Barang</label>
+                    <input type="text" id="item_name" class="brutal-input w-full p-3 font-bold" required placeholder="Contoh: Dompet Hitam">
+                </div>
+                <div>
+                    <label class="block font-black uppercase mb-2">Deskripsi / Ciri-ciri</label>
+                    <textarea id="description" rows="3" class="brutal-input w-full p-3 font-bold" placeholder="Detail barang..."></textarea>
+                </div>
+                <div>
+                    <label class="block font-black uppercase mb-2">Lokasi Kejadian</label>
+                    <div class="flex gap-2">
+                        <input type="text" id="location" class="brutal-input p-3 font-bold flex-1 w-full min-w-0" required placeholder="Contoh: Perpustakaan">
+                        <button type="button" onclick="getLocation()" class="bg-primary text-black px-4 py-3 brutal-border brutal-shadow hover:brutal-shadow-none font-black uppercase whitespace-nowrap flex items-center justify-center" title="Ambil Lokasi Saat Ini">
+                            📍 Lacak
+                        </button>
+                    </div>
+                    <p id="locationStatus" class="text-xs font-bold mt-1 hidden"></p>
+                </div>
+                <div>
+                    <label class="block font-black uppercase mb-2">Waktu Kejadian</label>
+                    <input type="datetime-local" id="event_time" class="brutal-input w-full p-3 font-bold" required>
+                </div>
+                <div>
+                    <label class="block font-black uppercase mb-2">Kontak (No WA)</label>
+                    <input type="text" id="contact_info" class="brutal-input w-full p-3 font-bold" required placeholder="081234...">
+                </div>
+                <div>
+                    <label class="block font-black uppercase mb-2">Foto Barang</label>
+                    <input type="file" id="item_image" accept="image/*" class="w-full text-sm font-bold">
+                    <img id="imagePreview" class="hidden mt-4 brutal-border max-h-40 object-cover w-full" />
+                </div>
+                <div class="pt-6 border-t-[3px] border-black dark:border-white flex justify-end gap-4">
+                    <button type="button" onclick="document.getElementById('addModal').classList.add('hidden')" class="px-6 py-3 brutal-border bg-gray-200 dark:bg-gray-700 text-black dark:text-white font-black uppercase hover:bg-gray-300">Batal</button>
+                    <button type="submit" id="saveBtn" class="px-6 py-3 bg-primary text-black font-black uppercase brutal-border brutal-shadow hover:brutal-shadow-none">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div id="detailModal" class="hidden fixed inset-0 bg-black/80 flex items-center justify-center z-[100] p-4">
+        <div class="bg-white dark:bg-[#1a1a1a] w-full max-w-2xl brutal-border brutal-shadow max-h-[90vh] overflow-y-auto">
+            <div id="detailContent"></div>
+        </div>
+    </div>
+    <script>
+        const token = localStorage.getItem('silaf-token');
+        const userStr = localStorage.getItem('silaf-user');
+        if (!token || !userStr) {
+            window.location.href = 'index.html';
+        }
+        const user = JSON.parse(userStr);
+        document.getElementById('userName').textContent = user.name;
+        document.getElementById('mobileUserName').textContent = user.name;
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('hidden');
+        }
+        async function getLocation() {
+            const statusText = document.getElementById('locationStatus');
+            const locationInput = document.getElementById('location');
+            if (!navigator.geolocation) {
+                statusText.textContent = "Geolokasi tidak didukung oleh browser Anda.";
+                statusText.className = "text-xs font-bold mt-1 text-red-500";
+                return;
+            }
+            statusText.textContent = "Mencari lokasi...";
+            statusText.className = "text-xs font-bold mt-1 text-blue-500";
+            navigator.geolocation.getCurrentPosition(async (position) => {
+                const lat = position.coords.latitude;
+                const lon = position.coords.longitude;
+                try {
+                    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`);
+                    const data = await res.json();
+                    if(data && data.display_name) {
+                        locationInput.value = data.display_name;
+                        statusText.textContent = "Lokasi berhasil ditemukan.";
+                        statusText.className = "text-xs font-bold mt-1 text-green-600";
+                        setTimeout(() => statusText.classList.add('hidden'), 3000);
+                    } else {
+                        locationInput.value = `${lat}, ${lon}`;
+                        statusText.textContent = "Alamat tidak ditemukan. Menggunakan koordinat.";
+                        statusText.className = "text-xs font-bold mt-1 text-yellow-600";
+                    }
+                } catch(err) {
+                    locationInput.value = `${lat}, ${lon}`;
+                    statusText.textContent = "Gagal menghubungi map. Menggunakan koordinat.";
+                    statusText.className = "text-xs font-bold mt-1 text-yellow-600";
+                }
+            }, (error) => {
+                statusText.textContent = "Izin lokasi ditolak atau gagal dilacak.";
+                statusText.className = "text-xs font-bold mt-1 text-red-500";
+            }, {
+                enableHighAccuracy: true,
+                timeout: 10000,
+                maximumAge: 0
+            });
+        }
+        function logout() {
+            localStorage.removeItem('silaf-token');
+            localStorage.removeItem('silaf-user');
+            window.location.href = 'index.html';
+        }
+        function showAlert(msg) {
+            const box = document.getElementById('alertBox');
+            box.textContent = msg;
+            box.classList.remove('hidden');
+            box.classList.add('bg-primary');
+            setTimeout(() => box.classList.add('hidden'), 3000);
+        }
+        let searchTimeout;
+        function debouncedLoad() {
+            clearTimeout(searchTimeout);
+            const input = document.getElementById('searchInput');
+            const clearBtn = document.getElementById('clearSearchBtn');
+            if (input.value.length > 0) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
+            searchTimeout = setTimeout(loadItems, 1000);
+        }
+        function clearSearch() {
+            const input = document.getElementById('searchInput');
+            input.value = '';
+            input.dispatchEvent(new Event('input'));
+        }
+        async function loadItems() {
+            const type = document.getElementById('filterType').value;
+            const status = document.getElementById('filterStatus').value;
+            const mine = document.getElementById('filterMine').checked;
+            const search = document.getElementById('searchInput').value;
+            let url = `../api/items/list.php?status=${status}`;
+            if (type) url += `&type=${type}`;
+            if (mine) url += `&mine=true`;
+            if (search) url += `&search=${encodeURIComponent(search)}`;
+            try {
+                const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
+                const data = await res.json();
+                const grid = document.getElementById('itemsGrid');
+                grid.innerHTML = '';
+                document.getElementById('itemCountDisplay').textContent = `Menampilkan ${data.data?.length || 0} laporan`;
+                if (data.status === 'success' && data.data.length > 0) {
+                    window._itemsData = {};
+                    data.data.forEach(item => {
+                        window._itemsData[item.id] = item;
+                        let badgeColor = item.type === 'LOST' ? 'bg-red-400 text-black' : 'bg-green-400 text-black';
+                        let statusColor = item.status === 'RESOLVED' ? 'bg-gray-400 text-black' : 'bg-blue-400 text-black';
+                        const imgHtml = item.image_url ? 
+                            `<div class="border-b-[3px] border-black dark:border-white mb-4">
+                                <img src="${item.image_url}" alt="${item.item_name}" class="w-full h-52 object-cover">
+                            </div>` : '<div class="h-4 border-b-[3px] border-black dark:border-white mb-4"></div>';
+                        const descPreview = item.description ? `<p class="text-sm font-medium mb-4 line-clamp-2">${item.description}</p>` : '<div class="h-4"></div>';
+                        const card = `
+                            <div class="bg-white dark:bg-[#1a1a1a] brutal-border brutal-shadow hover:brutal-shadow-none flex flex-col h-full cursor-pointer duration-200" onclick="showDetail(${item.id})">
+                                <div class="p-4 border-b-[3px] border-black dark:border-white flex justify-between items-center bg-gray-100 dark:bg-gray-800">
+                                    <span class="text-[10px] uppercase font-black px-2 py-1 brutal-border ${badgeColor}">${item.type}</span>
+                                    <span class="text-[10px] uppercase font-black px-2 py-1 brutal-border ${statusColor}">${item.status}</span>
+                                </div>
+                                ${imgHtml}
+                                <div class="p-5 flex-grow">
+                                    <h3 class="text-2xl font-black mb-2 uppercase">${item.item_name}</h3>
+                                    ${descPreview}
+                                    <div class="space-y-3 mt-4 border-t-[3px] border-black dark:border-white pt-4">
+                                        <p class="text-xs font-bold flex items-center gap-2 uppercase">
+                                            📍 ${item.location}
+                                        </p>
+                                        <p class="text-xs font-bold flex items-center gap-2 uppercase">
+                                            🕒 ${new Date(item.event_time).toLocaleDateString('id-ID', {day: 'numeric', month: 'short', year: 'numeric'})}
+                                        </p>
+                                    </div>
+                                </div>
+                                <div class="p-4 border-t-[3px] border-black dark:border-white bg-primary text-black font-black uppercase text-xs flex justify-between items-center">
+                                    <span class="truncate pr-2">Pelapor: ${item.reporter_name}</span>
+                                    <span id="hit-badge-${item.id}" class="flex items-center gap-1 whitespace-nowrap">👁️ ${item.hits || 0} &nbsp; Lihat →</span>
+                                </div>
+                            </div>
+                        `;
+                        grid.innerHTML += card;
+                    });
+                } else {
+                    grid.innerHTML = `
+                        <div class="col-span-full py-20 text-center brutal-border brutal-shadow bg-white dark:bg-[#1a1a1a]">
+                            <h3 class="text-2xl font-black uppercase mb-2">Data Tidak Ditemukan</h3>
+                            <p class="font-bold">Coba kata kunci lain atau ubah filter Anda.</p>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                document.getElementById('itemsGrid').innerHTML = `
+                    <div class="col-span-full py-20 text-center brutal-border brutal-shadow bg-white dark:bg-[#1a1a1a]">
+                        <h3 class="text-2xl font-black uppercase mb-2">Data Tidak Ditemukan</h3>
+                        <p class="font-bold text-gray-500">Gagal memuat data atau laporan kosong.</p>
+                    </div>
+                `;
+            }
+        }
+        document.getElementById('item_image').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const preview = document.getElementById('imagePreview');
+            if (file) {
+                preview.src = URL.createObjectURL(file);
+                preview.classList.remove('hidden');
+            } else {
+                preview.classList.add('hidden');
+            }
+        });
+        document.getElementById('itemForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('saveBtn');
+            btn.disabled = true;
+            btn.textContent = 'MENYIMPAN...';
+            let image_url = null;
+            const fileInput = document.getElementById('item_image');
+            if (fileInput.files.length > 0) {
+                btn.textContent = 'UPLOAD FOTO...';
+                const formData = new FormData();
+                formData.append('image', fileInput.files[0]);
+                try {
+                    const uploadRes = await fetch('../api/items/upload.php', {
+                        method: 'POST',
+                        headers: { 'Authorization': 'Bearer ' + token },
+                        body: formData
+                    });
+                    const uploadData = await uploadRes.json();
+                    if (uploadData.status === 'success') {
+                        image_url = uploadData.image_url;
+                    } else {
+                        alert(uploadData.message || 'Gagal upload foto.');
+                        btn.disabled = false;
+                        btn.textContent = 'SIMPAN';
+                        return;
+                    }
+                } catch (err) {
+                    alert('Gagal upload foto.');
+                    btn.disabled = false;
+                    btn.textContent = 'SIMPAN';
+                    return;
+                }
+            }
+            btn.textContent = 'MENYIMPAN...';
+            const payload = {
+                type: document.getElementById('type').value,
+                item_name: document.getElementById('item_name').value,
+                description: document.getElementById('description').value || null,
+                location: document.getElementById('location').value,
+                event_time: document.getElementById('event_time').value,
+                contact_info: document.getElementById('contact_info').value,
+                image_url: image_url
+            };
+            try {
+                const res = await fetch('../api/items/create.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify(payload)
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    document.getElementById('addModal').classList.add('hidden');
+                    document.getElementById('itemForm').reset();
+                    document.getElementById('imagePreview').classList.add('hidden');
+                    showAlert('Laporan berhasil dibuat!');
+                    loadItems();
+                } else {
+                    alert(data.message || 'Gagal membuat laporan');
+                }
+            } catch (err) {
+                alert('Terjadi kesalahan koneksi.');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'SIMPAN';
+            }
+        });
+        async function resolveItem(id) {
+            if(!confirm('Tandai laporan ini sebagai SELESAI?')) return;
+            try {
+                const res = await fetch('../api/items/update.php', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ id: id, status: 'RESOLVED' })
+                });
+                if(res.ok) {
+                    showAlert('Laporan diselesaikan.');
+                    loadItems();
+                }
+            } catch(e) {}
+        }
+        async function deleteItem(id) {
+            if(!confirm('Hapus laporan ini?')) return;
+            try {
+                const res = await fetch('../api/items/delete.php?id=' + id, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if(res.ok) {
+                    showAlert('Laporan dihapus.');
+                    loadItems();
+                }
+            } catch(e) {}
+        }
+        function showDetail(id) {
+            const item = window._itemsData[id];
+            if (!item) return;
+            if (item.user_id !== user.id) {
+                fetch('../api/items/hit.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ id: item.id })
+                }).then(res => res.json()).then(data => {
+                    if (data.status === 'success' && data.message === 'Hit recorded.') {
+                        item.hits = (parseInt(item.hits) || 0) + 1;
+                        const detailHit = document.getElementById('hitCountDetail');
+                        if (detailHit) detailHit.textContent = `👁️ ${item.hits} Dilihat`;
+                        const cardHit = document.getElementById(`hit-badge-${item.id}`);
+                        if (cardHit) cardHit.innerHTML = `👁️ ${item.hits} &nbsp; Lihat →`;
+                    }
+                }).catch(e => console.error(e));
+            }
+            const isMine = item.user_id === user.id;
+            let badgeColor = item.type === 'LOST' ? 'bg-red-400 text-black' : 'bg-green-400 text-black';
+            let statusColor = item.status === 'RESOLVED' ? 'bg-gray-400 text-black' : 'bg-blue-400 text-black';
+            const imgHtml = item.image_url ? `<img src="${item.image_url}" alt="${item.item_name}" class="w-full max-h-96 object-contain bg-black border-b-[3px] border-black dark:border-white">` : '';
+            document.getElementById('detailContent').innerHTML = `
+                <div class="flex justify-between items-center p-3 md:p-4 border-b-[3px] border-black dark:border-white bg-primary text-black">
+                    <h2 class="text-lg md:text-2xl font-black uppercase">Detail Laporan</h2>
+                    <button onclick="document.getElementById('detailModal').classList.add('hidden')" class="text-2xl md:text-3xl font-black hover:scale-110 transition-transform">&times;</button>
+                </div>
+                ${imgHtml}
+                <div class="p-4 md:p-8">
+                    <div class="flex gap-2 md:gap-3 mb-4 md:mb-6 flex-wrap items-center">
+                        <span class="text-[10px] md:text-xs uppercase font-black px-2 md:px-3 py-1 brutal-border ${badgeColor}">${item.type === 'LOST' ? '🔴 KEHILANGAN' : '🟢 TEMUAN'}</span>
+                        <span class="text-[10px] md:text-xs uppercase font-black px-2 md:px-3 py-1 brutal-border ${statusColor}">${item.status}</span>
+                        <span id="hitCountDetail" class="text-[10px] md:text-xs uppercase font-black px-2 md:px-3 py-1 brutal-border bg-yellow-300 text-black ml-auto">👁️ ${item.hits || 0} Dilihat</span>
+                    </div>
+                    <h2 class="text-2xl sm:text-3xl md:text-4xl font-black mb-4 md:mb-6 uppercase leading-tight break-words">${item.item_name}</h2>
+                    ${item.description ? `
+                        <div class="mb-6 md:mb-8">
+                            <h3 class="text-xs md:text-sm uppercase font-black mb-2 border-b-[3px] border-black dark:border-white pb-1 inline-block">Deskripsi</h3>
+                            <p class="font-bold whitespace-pre-line text-sm md:text-lg bg-gray-100 dark:bg-gray-800 p-3 md:p-4 brutal-border break-words">${item.description}</p>
+                        </div>
+                    ` : ''}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
+                        <div class="brutal-border p-3 md:p-4 bg-gray-100 dark:bg-gray-800">
+                            <p class="text-[10px] md:text-xs uppercase font-black text-gray-500 mb-1">Lokasi</p>
+                            <p class="font-bold text-sm md:text-lg break-words">📍 ${item.location}</p>
+                        </div>
+                        <div class="brutal-border p-3 md:p-4 bg-gray-100 dark:bg-gray-800">
+                            <p class="text-[10px] md:text-xs uppercase font-black text-gray-500 mb-1">Waktu</p>
+                            <p class="font-bold text-sm md:text-lg break-words">🕒 ${new Date(item.event_time).toLocaleString('id-ID', {day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'})}</p>
+                        </div>
+                        <div class="brutal-border p-3 md:p-4 bg-gray-100 dark:bg-gray-800">
+                            <p class="text-[10px] md:text-xs uppercase font-black text-gray-500 mb-1">Pelapor</p>
+                            <p class="font-bold text-sm md:text-lg break-words">👤 ${item.reporter_name}</p>
+                        </div>
+                        <div class="brutal-border p-3 md:p-4 bg-gray-100 dark:bg-gray-800">
+                            <p class="text-[10px] md:text-xs uppercase font-black text-gray-500 mb-1">Kontak</p>
+                            <p class="font-bold text-sm md:text-lg break-words">📱 ${item.contact_info}</p>
+                        </div>
+                    </div>
+                    ${isMine ? `
+                        <div class="flex flex-col sm:flex-row gap-3 md:gap-4 pt-4 md:pt-6 border-t-[3px] border-black dark:border-white">
+                            ${item.status === 'ACTIVE' ? `<button onclick="document.getElementById('detailModal').classList.add('hidden'); resolveItem(${item.id})" class="flex-1 bg-green-400 text-black py-3 md:py-4 brutal-border brutal-shadow hover:brutal-shadow-none font-black uppercase text-sm md:text-lg">Tandai Selesai</button>` : ''}
+                            <button onclick="document.getElementById('detailModal').classList.add('hidden'); deleteItem(${item.id})" class="flex-1 bg-red-400 text-black py-3 md:py-4 brutal-border brutal-shadow hover:brutal-shadow-none font-black uppercase text-sm md:text-lg">Hapus</button>
+                        </div>
+                    ` : `
+                        <div class="pt-4 md:pt-6 border-t-[3px] border-black dark:border-white">
+                            <a href="https://wa.me/${item.contact_info.replace(/[^0-9]/g, '')}" target="_blank" class="block w-full text-center bg-green-400 text-black py-3 md:py-4 brutal-border brutal-shadow hover:brutal-shadow-none font-black uppercase text-sm md:text-lg flex items-center justify-center gap-2 md:gap-3">
+                                <svg class="w-5 h-5 md:w-6 md:h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.414 0 0 5.414 0 12.05c0 2.123.553 4.197 1.604 6.02L0 24l6.137-1.61c1.769.965 3.766 1.474 5.908 1.475h.005c6.635 0 12.05-5.414 12.05-12.05a11.802 11.802 0 00-3.527-8.513z"/></svg>
+                                Hubungi via WhatsApp
+                            </a>
+                        </div>
+                    `}
+                </div>
+            `;
+            document.getElementById('detailModal').classList.remove('hidden');
+        }
+        document.getElementById('detailModal').addEventListener('click', function(e) {
+            if (e.target === this) this.classList.add('hidden');
+        });
+        loadItems();
+    </script>
+</body>
+</html>

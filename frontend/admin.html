@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel – SILAF</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="assets/style.css">
+    <script src="assets/theme.js"></script>
+</head>
+<body class="min-h-screen">
+    <nav class="bg-primary text-black brutal-border border-l-0 border-r-0 border-t-0 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16 items-center">
+                <div class="flex items-center gap-2">
+                    <span class="text-3xl font-black uppercase tracking-tighter bg-primary text-black px-2 brutal-border">SILAF ADMIN</span>
+                </div>
+                <div id="disable-auto-theme" class="hidden md:flex items-center gap-4">
+                    <div class="flex flex-col text-right leading-tight pr-4 border-r-[3px] border-black dark:border-white">
+                        <span id="userName" class="text-sm font-black uppercase bg-white text-black px-2 py-1 brutal-border inline-block"></span>
+                        <div class="flex gap-2 justify-end mt-1">
+                            <a href="dashboard.html" class="text-xs text-blue-800 dark:text-blue-300 font-bold uppercase hover:underline">Mode User</a>
+                            <span class="text-xs">|</span>
+                            <button onclick="logout()" class="text-xs text-red-500 font-bold uppercase hover:underline">Keluar</button>
+                        </div>
+                    </div>
+                    <button onclick="toggleTheme()" class="p-2 brutal-border bg-white dark:bg-[#1a1a1a] text-black dark:text-white font-black hover:scale-110 transition-transform">🌓</button>
+                    <div class="relative w-10 h-10 rounded-full cursor-pointer color-wheel brutal-border">
+                        <input type="color" oninput="updateColor(this.value)" class="theme-color-input absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                    </div>
+                </div>
+                <div class="md:hidden flex items-center">
+                    <button onclick="toggleMobileMenu()" class="p-2 brutal-border brutal-shadow bg-primary text-black">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div id="mobileMenu" class="hidden md:hidden bg-primary border-t-[3px] border-black p-4 absolute w-full z-50 brutal-border border-l-0 border-r-0">
+            <div class="flex items-center justify-between">
+                <div class="flex flex-col leading-tight">
+                    <span id="mobileUserName" class="text-lg font-black uppercase bg-white text-black px-2 py-1 brutal-border inline-block self-start"></span>
+                    <div class="flex gap-3 mt-2">
+                        <a href="dashboard.html" class="text-xs text-blue-800 font-black uppercase hover:underline">Mode User</a>
+                        <button onclick="logout()" class="text-xs text-red-600 font-black uppercase hover:underline">Keluar</button>
+                    </div>
+                </div>
+                <div class="flex items-center gap-3">
+                    <button onclick="toggleTheme()" class="p-2 brutal-border bg-white dark:bg-[#1a1a1a] text-black dark:text-white font-black hover:scale-110 transition-transform">🌓</button>
+                    <div class="relative w-10 h-10 rounded-full cursor-pointer color-wheel brutal-border">
+                        <input type="color" oninput="updateColor(this.value)" class="theme-color-input absolute inset-0 w-full h-full opacity-0 cursor-pointer">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex flex-col gap-8">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+            <div class="bg-white dark:bg-[#1a1a1a] text-black dark:text-white p-6 brutal-border brutal-shadow text-center">
+                <p class="text-sm font-black uppercase tracking-widest">Total User</p>
+                <p id="statUsers" class="text-4xl font-black mt-2">0</p>
+            </div>
+            <div class="bg-blue-400 text-black p-6 brutal-border brutal-shadow text-center">
+                <p class="text-sm font-black uppercase tracking-widest">Aktif</p>
+                <p id="statActive" class="text-4xl font-black mt-2">0</p>
+            </div>
+            <div class="bg-green-400 text-black p-6 brutal-border brutal-shadow text-center">
+                <p class="text-sm font-black uppercase tracking-widest">Selesai</p>
+                <p id="statResolved" class="text-4xl font-black mt-2">0</p>
+            </div>
+            <div class="bg-red-400 text-black p-6 brutal-border brutal-shadow text-center">
+                <p class="text-sm font-black uppercase tracking-widest">Dihapus</p>
+                <p id="statDeleted" class="text-4xl font-black mt-2">0</p>
+            </div>
+        </div>
+        <div id="alertBox" class="hidden p-4 brutal-border text-black font-bold uppercase"></div>
+        <div class="bg-white dark:bg-[#1a1a1a] brutal-border brutal-shadow overflow-hidden">
+            <div class="p-4 border-b-[3px] border-black dark:border-white flex flex-col md:flex-row justify-between items-start md:items-center bg-gray-100 dark:bg-gray-800 gap-4">
+                <h2 class="text-2xl font-black uppercase tracking-wider">Kelola Laporan</h2>
+                <label class="flex items-center gap-3 cursor-pointer bg-white dark:bg-black p-2 brutal-border">
+                    <input type="checkbox" id="showDeleted" onchange="loadAdminData()" class="w-5 h-5 accent-primary cursor-pointer brutal-border">
+                    <span class="text-sm font-bold uppercase">Tampilkan yang dihapus</span>
+                </label>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm whitespace-nowrap">
+                    <thead class="bg-primary text-black font-black uppercase">
+                        <tr>
+                            <th class="px-4 py-4 border-b-[3px] border-black">ID</th>
+                            <th class="px-4 py-4 border-b-[3px] border-black">Tipe</th>
+                            <th class="px-4 py-4 border-b-[3px] border-black">Barang</th>
+                            <th class="px-4 py-4 border-b-[3px] border-black">Pelapor</th>
+                            <th class="px-4 py-4 border-b-[3px] border-black">Status</th>
+                            <th class="px-4 py-4 border-b-[3px] border-black text-right">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="font-bold divide-y-[3px] divide-black dark:divide-white">
+                        <tr><td colspan="6" class="px-4 py-10 text-center text-xl uppercase">Memuat data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script>
+        const token = localStorage.getItem('silaf-token');
+        const userStr = localStorage.getItem('silaf-user');
+        if (!token || !userStr) {
+            window.location.href = 'index.html';
+        }
+        const user = JSON.parse(userStr);
+        if(user.role !== 'ADMIN') {
+            window.location.href = '403.html';
+        }
+        document.getElementById('userName').textContent = user.name;
+        document.getElementById('mobileUserName').textContent = user.name;
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobileMenu');
+            menu.classList.toggle('hidden');
+        }
+        function logout() {
+            localStorage.removeItem('silaf-token');
+            localStorage.removeItem('silaf-user');
+            window.location.href = 'index.html';
+        }
+        function showAlert(msg) {
+            const box = document.getElementById('alertBox');
+            box.textContent = msg;
+            box.classList.remove('hidden');
+            box.classList.add('bg-primary');
+            setTimeout(() => box.classList.add('hidden'), 3000);
+        }
+        async function loadAdminData() {
+            const showDeleted = document.getElementById('showDeleted').checked;
+            try {
+                const res = await fetch(`../api/admin/items.php?deleted=${showDeleted}`, {
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                const data = await res.json();
+                if(data.status === 'success') {
+                    document.getElementById('statUsers').textContent = data.stats.total_users || 0;
+                    document.getElementById('statActive').textContent = data.stats.active || 0;
+                    document.getElementById('statResolved').textContent = data.stats.resolved || 0;
+                    document.getElementById('statDeleted').textContent = data.stats.deleted || 0;
+                    const tbody = document.getElementById('tableBody');
+                    tbody.innerHTML = '';
+                    if(data.data.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="6" class="px-4 py-10 text-center uppercase">Tidak ada data.</td></tr>';
+                        return;
+                    }
+                    data.data.forEach(item => {
+                        const isDeleted = item.deleted_at !== null;
+                        let badgeType = item.type === 'LOST' ? '<span class="px-2 py-1 bg-red-400 text-black border-2 border-black font-black uppercase text-xs">LOST</span>' : '<span class="px-2 py-1 bg-green-400 text-black border-2 border-black font-black uppercase text-xs">FOUND</span>';
+                        let statusText = isDeleted ? '<span class="px-2 py-1 bg-red-600 text-white border-2 border-black font-black uppercase text-xs">Deleted</span>' : 
+                                         item.status === 'ACTIVE' ? '<span class="px-2 py-1 bg-blue-400 text-black border-2 border-black font-black uppercase text-xs">Active</span>' :
+                                         '<span class="px-2 py-1 bg-gray-400 text-black border-2 border-black font-black uppercase text-xs">Resolved</span>';
+                        const tr = document.createElement('tr');
+                        if(isDeleted) tr.classList.add('bg-red-100', 'dark:bg-red-900/30');
+                        tr.innerHTML = `
+                            <td class="px-4 py-4">#${item.id}</td>
+                            <td class="px-4 py-4">${badgeType}</td>
+                            <td class="px-4 py-4 font-black text-lg">${item.item_name}</td>
+                            <td class="px-4 py-4">${item.reporter_name}</td>
+                            <td class="px-4 py-4">${statusText}</td>
+                            <td class="px-4 py-4 text-right">
+                                ${isDeleted ? `
+                                    <button onclick="restoreItem(${item.id})" class="text-xs bg-green-400 text-black px-3 py-2 brutal-border font-black uppercase hover:bg-green-500 mr-2">Restore</button>
+                                    <button onclick="permDeleteItem(${item.id})" class="text-xs bg-black text-red-500 px-3 py-2 brutal-border font-black uppercase hover:bg-gray-800">Hapus Permanen</button>
+                                ` : `
+                                    <button onclick="deleteItem(${item.id})" class="text-xs bg-red-400 text-black px-3 py-2 brutal-border font-black uppercase hover:bg-red-500">Soft Delete</button>
+                                `}
+                            </td>
+                        `;
+                        tbody.appendChild(tr);
+                    });
+                }
+            } catch(e) {
+                console.error(e);
+            }
+        }
+        async function deleteItem(id) {
+            if(!confirm('Hapus laporan ini (Soft Delete)?')) return;
+            try {
+                const res = await fetch('../api/items/delete.php?id=' + id, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if(res.ok) {
+                    showAlert('BERHASIL DIHAPUS.');
+                    loadAdminData();
+                }
+            } catch(e) {}
+        }
+        async function restoreItem(id) {
+            if(!confirm('Pulihkan laporan ini?')) return;
+            try {
+                const res = await fetch('../api/admin/restore.php', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+                    body: JSON.stringify({ id: id })
+                });
+                if(res.ok) {
+                    showAlert('BERHASIL DIPULIHKAN.');
+                    loadAdminData();
+                }
+            } catch(e) {}
+        }
+        async function permDeleteItem(id) {
+            if(!confirm('HAPUS PERMANEN DARI DATABASE? INI TIDAK BISA DIBATALKAN!')) return;
+            try {
+                const res = await fetch('../api/admin/restore.php?id=' + id, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+                if(res.ok) {
+                    showAlert('DIHAPUS PERMANEN.');
+                    loadAdminData();
+                }
+            } catch(e) {}
+        }
+        loadAdminData();
+    </script>
+</body>
+</html>

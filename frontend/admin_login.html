@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Login – SILAF</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="assets/style.css">
+    <script src="assets/theme.js"></script>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md bg-white dark:bg-[#1a1a1a] p-8 brutal-border brutal-shadow relative overflow-hidden">
+        <div class="absolute -top-10 -right-10 w-32 h-32 bg-primary brutal-border rounded-full opacity-50 z-0"></div>
+        <div class="text-center mb-6 relative z-10">
+            <h1 class="text-4xl font-black uppercase tracking-tighter bg-primary text-black px-2 inline-block brutal-border">SILAF ADMIN</h1>
+            <p class="text-sm font-bold mt-2 uppercase tracking-widest bg-yellow-300 text-black inline-block px-2 py-1 brutal-border">Hanya Petugas</p>
+        </div>
+        <div id="alertBox" class="hidden mb-4 p-3 brutal-border text-sm text-center font-bold relative z-10"></div>
+        <form id="adminLoginForm" class="space-y-5 relative z-10">
+            <div>
+                <label class="block text-sm font-bold mb-1 uppercase tracking-wide">Email Admin</label>
+                <input type="email" id="email" required placeholder="admin@silaf.id"
+                    class="brutal-input w-full px-4 py-3">
+            </div>
+            <div>
+                <label class="block text-sm font-bold mb-1 uppercase tracking-wide">Password</label>
+                <input type="password" id="password" required placeholder="Masukkan password"
+                    class="brutal-input w-full px-4 py-3">
+            </div>
+            <div class="bg-red-100 dark:bg-red-900/50 p-4 brutal-border">
+                <label class="block text-sm font-black mb-1 text-red-600 dark:text-red-400 uppercase tracking-widest flex items-center gap-2">
+                    <span>⚠️</span> Secret Code
+                </label>
+                <input type="password" id="secret_code" required placeholder="Kode Rahasia Admin"
+                    class="brutal-input w-full px-4 py-3 border-red-600 dark:border-red-400 focus:shadow-[4px_4px_0px_0px_#dc2626]">
+            </div>
+            <button type="submit" id="submitBtn" class="w-full bg-primary text-black font-black py-3 px-4 brutal-border brutal-shadow hover:brutal-shadow-none uppercase tracking-widest mt-4">
+                Masuk ke Panel
+            </button>
+        </form>
+        <p class="mt-8 text-center text-sm font-bold relative z-10">
+            Bukan Admin? <a href="index.html" class="text-primary hover:underline">Kembali ke Login User</a>
+        </p>
+    </div>
+    <script>
+        document.getElementById('adminLoginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const secret_code = document.getElementById('secret_code').value;
+            const btn = document.getElementById('submitBtn');
+            const alertBox = document.getElementById('alertBox');
+            btn.disabled = true;
+            btn.textContent = 'MEMVERIFIKASI...';
+            alertBox.classList.add('hidden');
+            try {
+                const res = await fetch('../api/auth/admin_login.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password, secret_code })
+                });
+                const data = await res.json();
+                if (data.status === 'success') {
+                    localStorage.setItem('silaf-token', data.token);
+                    localStorage.setItem('silaf-user', JSON.stringify(data.user));
+                    alertBox.textContent = 'AKSES DIBERIKAN! MENGALIHKAN...';
+                    alertBox.className = 'mb-4 p-3 brutal-border text-sm text-center font-bold bg-green-400 text-black relative z-10';
+                    alertBox.classList.remove('hidden');
+                    setTimeout(() => {
+                        window.location.href = 'admin.html';
+                    }, 1000);
+                } else {
+                    alertBox.textContent = data.message || 'Login Admin gagal.';
+                    alertBox.className = 'mb-4 p-3 brutal-border text-sm text-center font-bold bg-red-400 text-black relative z-10';
+                    alertBox.classList.remove('hidden');
+                    btn.disabled = false;
+                    btn.textContent = 'MASUK KE PANEL';
+                }
+            } catch (err) {
+                alertBox.textContent = 'Gagal menghubungi server.';
+                alertBox.className = 'mb-4 p-3 brutal-border text-sm text-center font-bold bg-red-400 text-black relative z-10';
+                alertBox.classList.remove('hidden');
+                btn.disabled = false;
+                btn.textContent = 'MASUK KE PANEL';
+            }
+        });
+    </script>
+</body>
+</html>
