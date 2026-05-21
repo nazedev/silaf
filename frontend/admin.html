@@ -137,6 +137,14 @@
                 const res = await fetch(`../api/admin/items.php?deleted=${showDeleted}`, {
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
+                if (res.status === 403 || res.status === 401) {
+                    window.location.href = '/403.html';
+                    return;
+                }
+                if (res.status === 500) {
+                    window.location.href = '/500.html';
+                    return;
+                }
                 const data = await res.json();
                 if(data.status === 'success') {
                     document.getElementById('statUsers').textContent = data.stats.total_users || 0;
@@ -186,6 +194,14 @@
                     method: 'DELETE',
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
+                if (res.status === 403 || res.status === 401) {
+                    window.location.href = '/403.html';
+                    return;
+                }
+                if (res.status === 500) {
+                    window.location.href = '/500.html';
+                    return;
+                }
                 if(res.ok) {
                     showAlert('BERHASIL DIHAPUS.');
                     loadAdminData();
@@ -200,6 +216,14 @@
                     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                     body: JSON.stringify({ id: id })
                 });
+                if (res.status === 403 || res.status === 401) {
+                    window.location.href = '/403.html';
+                    return;
+                }
+                if (res.status === 500) {
+                    window.location.href = '/500.html';
+                    return;
+                }
                 if(res.ok) {
                     showAlert('BERHASIL DIPULIHKAN.');
                     loadAdminData();
@@ -213,6 +237,14 @@
                     method: 'DELETE',
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
+                if (res.status === 403 || res.status === 401) {
+                    window.location.href = '/403.html';
+                    return;
+                }
+                if (res.status === 500) {
+                    window.location.href = '/500.html';
+                    return;
+                }
                 if(res.ok) {
                     showAlert('DIHAPUS PERMANEN.');
                     loadAdminData();
