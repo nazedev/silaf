@@ -255,6 +255,14 @@
             if (search) url += `&search=${encodeURIComponent(search)}`;
             try {
                 const res = await fetch(url, { headers: { 'Authorization': 'Bearer ' + token } });
+                if (res.status === 403 || res.status === 401) {
+                    window.location.href = '/403.html';
+                    return;
+                }
+                if (res.status === 500) {
+                    window.location.href = '/500.html';
+                    return;
+                }
                 const data = await res.json();
                 const grid = document.getElementById('itemsGrid');
                 grid.innerHTML = '';
@@ -341,6 +349,14 @@
                         headers: { 'Authorization': 'Bearer ' + token },
                         body: formData
                     });
+                    if (uploadRes.status === 403 || uploadRes.status === 401) {
+                        window.location.href = '/403.html';
+                        return;
+                    }
+                    if (uploadRes.status === 500) {
+                        window.location.href = '/500.html';
+                        return;
+                    }
                     const uploadData = await uploadRes.json();
                     if (uploadData.status === 'success') {
                         image_url = uploadData.image_url;
@@ -373,6 +389,14 @@
                     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                     body: JSON.stringify(payload)
                 });
+                if (res.status === 403 || res.status === 401) {
+                    window.location.href = '/403.html';
+                    return;
+                }
+                if (res.status === 500) {
+                    window.location.href = '/500.html';
+                    return;
+                }
                 const data = await res.json();
                 if (data.status === 'success') {
                     document.getElementById('addModal').classList.add('hidden');
@@ -398,6 +422,14 @@
                     headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
                     body: JSON.stringify({ id: id, status: 'RESOLVED' })
                 });
+                if (res.status === 403 || res.status === 401) {
+                    window.location.href = '/403.html';
+                    return;
+                }
+                if (res.status === 500) {
+                    window.location.href = '/500.html';
+                    return;
+                }
                 if(res.ok) {
                     showAlert('Laporan diselesaikan.');
                     loadItems();
@@ -411,6 +443,14 @@
                     method: 'DELETE',
                     headers: { 'Authorization': 'Bearer ' + token }
                 });
+                if (res.status === 403 || res.status === 401) {
+                    window.location.href = '/403.html';
+                    return;
+                }
+                if (res.status === 500) {
+                    window.location.href = '/500.html';
+                    return;
+                }
                 if(res.ok) {
                     showAlert('Laporan dihapus.');
                     loadItems();
