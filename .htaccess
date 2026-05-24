@@ -2,4 +2,5 @@ RewriteEngine On
 RewriteRule ^$ frontend/index.html [L]
 RewriteCond %{REQUEST_URI} !^/api/
 RewriteCond %{REQUEST_URI} !^/vendor/
+RewriteCond %{REQUEST_URI} !^/frontend/
 RewriteRule ^(.*)$ frontend/$1 [L]
